@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "**/*.test.js",
+    "**/*.test.ts",
+    "**/__test__/**",
+    "node_modules/**/*"
+  ]
+}
