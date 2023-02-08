@@ -1,0 +1,13 @@
+{
+  "name": "j_template_firebase-functions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "firebase-tools": "^11.21.0"
+  }
+}
