@@ -4,7 +4,7 @@ import { AuthService } from '@/auth/auth.service'
 describe.skip('AuthService', () => {
   let service: AuthService
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthService]
     }).compile()

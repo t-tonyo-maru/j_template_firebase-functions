@@ -4,7 +4,7 @@ import { StorageService } from '@/storage/storage.service'
 describe.skip('StorageService', () => {
   let service: StorageService
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [StorageService]
     }).compile()

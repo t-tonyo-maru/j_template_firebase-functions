@@ -17,7 +17,7 @@ export class AuthService {
     let result = false
     await this.firebaseService
       .getAuth()
-      .verifyIdToken(idToken, true) // 期限切れtokenは認証不可とする
+      .verifyIdToken(idToken, true) // 第2引数にtrueを入れて、期限切れtokenは認証不可とする
       .then(() => {
         result = true
       })

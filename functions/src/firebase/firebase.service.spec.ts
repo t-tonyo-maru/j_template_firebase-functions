@@ -4,7 +4,7 @@ import { FirebaseService } from '@/firebase/firebase.service'
 describe.skip('FirebaseService', () => {
   let service: FirebaseService
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [FirebaseService]
     }).compile()

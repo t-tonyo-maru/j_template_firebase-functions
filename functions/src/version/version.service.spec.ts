@@ -8,7 +8,7 @@ describe('VersionService', () => {
   let service: VersionService
   let config: ConfigService
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VersionService,

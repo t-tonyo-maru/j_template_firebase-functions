@@ -4,7 +4,7 @@ import { AuthController } from '@/auth/auth.controller'
 describe.skip('AuthController', () => {
   let controller: AuthController
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController]
     }).compile()

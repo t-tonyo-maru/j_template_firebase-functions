@@ -4,7 +4,7 @@ import { TodosService } from '@/todos/todos.service'
 describe.skip('TodosService', () => {
   let service: TodosService
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [TodosService]
     }).compile()

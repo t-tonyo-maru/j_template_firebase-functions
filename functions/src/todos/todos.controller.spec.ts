@@ -4,7 +4,7 @@ import { TodosController } from '@/todos/todos.controller'
 describe.skip('TodosController', () => {
   let controller: TodosController
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TodosController]
     }).compile()

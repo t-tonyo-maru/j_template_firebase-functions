@@ -5,12 +5,13 @@ import admin from 'firebase-admin'
 
 @Injectable()
 export class FirebaseService {
+  app: admin.app.App
   auth: admin.auth.Auth
   db: admin.firestore.Firestore
   bucket: ReturnType<admin.storage.Storage['bucket']>
 
   constructor(private readonly configService: ConfigService) {
-    admin.initializeApp({
+    this.app = admin.initializeApp({
       credential: admin.credential.cert({
         projectId: this.configService.get<string>(
           'firebaseCredentials.projectId'
@@ -23,9 +24,9 @@ export class FirebaseService {
           .replace(/\\n/g, '\n')
       })
     })
-    this.auth = admin.auth()
-    this.db = admin.firestore()
-    this.bucket = admin
+    this.auth = this.app.auth()
+    this.db = this.app.firestore()
+    this.bucket = this.app
       .storage()
       .bucket(
         `${this.configService.get<string>(
@@ -41,16 +42,6 @@ export class FirebaseService {
    */
   getAuth() {
     return this.auth
-  }
-
-  /**
-   * Firebase firestoreを取得する<br>
-   * Firesotreのcreated_at / updated_atを生成するために利用します
-   *
-   * @return {Firestore}
-   */
-  getFirestore() {
-    return admin.firestore
   }
 
   /**
@@ -72,5 +63,15 @@ export class FirebaseService {
    */
   getBucket() {
     return this.bucket
+  }
+
+  /**
+   * Firebase firestoreを取得する<br>
+   * Firesotreのcreated_at / updated_atを生成するために利用します
+   *
+   * @return {Firestore}
+   */
+  getFirestore() {
+    return admin.firestore
   }
 }

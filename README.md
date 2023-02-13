@@ -207,7 +207,7 @@ NestJS には、[Versioning 機能](https://docs.nestjs.com/techniques/versionin
 1. `functions/src/main.ts` にて、`VersioningType.URI` を適用
 2. 各 Controller デコレータに対して、`version` を指定
 
-この他に単一のエンドポイントのみの適用や、アプリケーション全体での適用も可能です。
+この他に、単一のエンドポイントのみの適用や、アプリケーション全体での適用も可能です。
 
 - [Versioning | NestJS](https://docs.nestjs.com/techniques/versioning)
 - [NestJS で API をバージョニング管理する](https://qiita.com/SuyamaDaichi/items/c36acd3f4bdd80cae98d)
@@ -297,6 +297,17 @@ NestJS には、デフォルトで`Jest`と`Supertest`が組み込まれてお�
 
 慣例的に、単体テストファイルはテスト対象の service や controller と同じディレクトリに格納します。  
 結合テストファイルは、`functions/test` に格納します。
+
+#### テスト時における環境変数のセット方法
+
+単体テストにおいて指定した環境変数ファイルを読み込めるように、以下のようなコードを実装しています。
+
+1. `functions/src/config/unit-test.config.ts` に環境変数上書き処理を記載
+2. package.json の jest の項目に `"setupFiles": ["<rootDir>/config/unit-test.config.ts"]` を追加
+   - jest では `setupFiles` に記載したファイルがテスト前に読み込まれる
+3. 単体テストファイルの `beforeAll` にて `ConfigService` を設定する
+   - `useValue` で、環境変数を返す関数をオーバーライドする
+   - サンプルファイル: `functions/src/auth/auth.guard.spec.ts`
 
 ### コードフォーマット
 

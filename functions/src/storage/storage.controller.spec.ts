@@ -4,7 +4,7 @@ import { StorageController } from '@/storage/storage.controller'
 describe.skip('StorageController', () => {
   let controller: StorageController
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StorageController]
     }).compile()

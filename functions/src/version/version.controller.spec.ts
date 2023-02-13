@@ -9,7 +9,7 @@ import { VersionController } from '@/version/version.controller'
 describe('VersionController', () => {
   let controller: VersionController
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VersionService,

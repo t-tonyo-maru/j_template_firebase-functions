@@ -5,28 +5,28 @@ import request from 'supertest'
 // module
 import { AppModule } from '@/app.module'
 
-describe('AppController (e2e)', () => {
+describe('Auth Guard (e2e)', () => {
   let app: INestApplication
 
-  // テスト開始前
   beforeAll(async () => {
-    // テストモジュール生成
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule]
     }).compile()
-    // アプリケーションの初期化
     app = moduleFixture.createNestApplication()
     await app.init()
   })
 
-  it('test: METHOD/GET, URL: "/version"', async () => {
-    const res = await request(app.getHttpServer()).get('/version')
-    expect(res.body.message).toBe('SUCCESS')
+  it('test: 認証を経ていない状態で todos へのリクエストは 401 であること', async () => {
+    const res = await request(app.getHttpServer()).get('/todos')
+    expect(res.status).toBe(401)
   })
 
-  // テスト終了時
+  it('test: 認証を経ていない状態で storage へのリクエストは 401 であること', async () => {
+    const res = await request(app.getHttpServer()).get('/storage/image')
+    expect(res.status).toBe(401)
+  })
+
   afterAll(async () => {
-    // アプリケーションを終了
     await app.close()
   })
 })
