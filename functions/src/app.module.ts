@@ -2,15 +2,15 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { ThrottlerModule } from '@nestjs/throttler'
-// app controller / service
-import { AppController } from '@/app.controller'
-import { AppService } from '@/app.service'
 // module
 import { AuthModule } from '@/auth/auth.module'
 import { TodosModule } from '@/todos/todos.module'
 import { FirebaseModule } from '@/firebase/firebase.module'
 import { StorageModule } from '@/storage/storage.module'
 import { VersionModule } from '@/version/version.module'
+// app controller / service
+import { AppController } from '@/app.controller'
+import { AppService } from '@/app.service'
 // config
 import configuration from '@/config/configuration'
 

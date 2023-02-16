@@ -72,6 +72,7 @@ typings/
 .env
 .env.*
 !.env.sample
+!.env.test.sample
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

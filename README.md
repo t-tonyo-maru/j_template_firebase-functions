@@ -86,31 +86,36 @@ concurrently は、[npm-run-all](https://www.npmjs.com/package/npm-run-all)の�
 
 ```
 ./
+├── .gitignore
 ├── README.md
 ├── firebase.json … firebaseの設定情報
 ├── functions … cloud functionsのソースコード一式
+│   ├── .gitignore
+│   ├── .eslintrc.js
+│   ├── .prettierrc
+│   ├── .env.sample … 環境変数のサンプル
+│   ├── .env.test.sample … テスト環境変数のサンプル
 │   ├── dist … NestJSのbuildファイル出力先
 │   ├── documentation … NestJSのドキュメント出力先
-│   ├── nest-cli.json
-│   ├── package-lock.json
-│   ├── package.json
+│   ├── nest-cli.json
+│   ├── package-lock.json
+│   ├── package.json
 │   ├── src … 各種ソースコードの格納先
-│   │   ├── auth … Firebase Auth を担うモジュール
-│   │   ├── config … NestJSの環境設定ファイル
-│   │   ├── firebase … firebase admin sdk を管理するモジュール
-│   │   ├── storage … Firebase Storage を担うモジュール
-│   │   ├── todos … FireStore 上のTODOドキュメントを扱うモジュール
-│   │   ├── version … アプリのversion情報を管理するモジュール
-│   │   ├── app.controller.spec.ts
-│   │   ├── app.controller.ts
-│   │   ├── app.module.ts … NestJSアプリのルートモジュール
-│   │   ├── app.service.ts
-│   │   ├── config … 設定情報を格納
-│   │   └── main.ts … cloud functionsのエントリーポイント
-│   ├── test … e2eテストファイルを格納
-│   ├── tsconfig.build.json
-│   ├── tsconfig.dev.json
-│   └── tsconfig.json
+│   │   ├── config … 設定情報を格納
+│   │   ├── main.ts … cloud functionsのエントリーポイント
+│   │   ├── app.controller.ts
+│   │   ├── app.module.ts … NestJSアプリのルートモジュール
+│   │   ├── app.service.ts
+│   │   ├── auth … Firebase Auth を担うモジュール
+│   │   ├── firebase … firebase admin sdk を管理するモジュール
+│   │   ├── storage … Firebase Storage を担うモジュール
+│   │   ├── todos … FireStore 上のTODOドキュメントを扱うモジュール
+│   │   └── version … アプリのversion情報を管理するモジュール
+│   ├── test … e2eテストファイルを格納
+│   │   └── jest-e2e.json … e2eテストの設定ファイル
+│   ├── tsconfig.build.json
+│   ├── tsconfig.dev.json
+│   └── tsconfig.json
 ├── package-lock.json
 └── package.json
 ```
@@ -185,11 +190,50 @@ sequenceDiagram
   - フロントエンドで Firebase Auth の`getIdToken()`を実行 → トークンをバックエンドへ送信して、`verifyIdToken()`で検証。検証結果に問題がなければ、各種 API を実行できるようになります。
   - 対象ファイル: `functions/src/auth/auth.guard.ts`
 
+#### フロントエンド側の実装例
+
+```
+// *1
+import { initializeApp } from 'firebase/app'
+import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth'
+
+// *2: Initialize Firebase
+const app = initializeApp({…})
+const auth = getAuth(app)
+
+// *3: signIn
+signInWithEmailAndPassword(auth, "user@email.com", "user-password")
+
+// *4: get idToken
+const idToken = await auth.currentUser!.getIdToken(true)
+
+// *5: HTTP GET -> /todos
+fetch('/template-firebase/region/api/v1/todos', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer ${idToken}`
+  }
+})
+
+// *6: signOut
+signOut(auth)
+```
+
+- (\*1): フロントエンド側 js で [firebase](https://www.npmjs.com/package/firebase) を読み込む。
+- (\*2): Firebase App を初期化する。
+- (\*3): `signInWithEmailAndPassword()` でログイン（ユーザー認証）を行う。
+  - `signInWithEmailAndPassword()` は非同期関数なので、`async/await`、`then()`、`catch()` 等が必要です。
+- (\*4): `getIdToken()` でログイン中ユーザーのトークンを取得する。
+- (\*5): Firebase cloud functions（本テンプレート）へリクエストを送信する。
+  - header に Authorization: Bearer トークンを追記して送信します。送信されたトークンを auth guard が検証します。
+- (\*6): サインアウトします。
+  - `signOut()` も非同期関数です。
+
 ### 環境変数
 
 本テンプレートは下記の構成を想定しています。
 
-- ローカル開発（`npm run fb:serve`）: functions/.env に firebase の機密情報を含めて、開発する
+- ローカル開発（`npm run fb:serve`）: `functions/.env` に firebase の機密情報を含めて、開発する
   - [@nestjs/config](https://docs.nestjs.com/techniques/configuration#custom-env-file-path)を利用して、環境変数を読み込めるようにしています。
   - **ただし、.env ファイルは絶対にリポジトリに含めない事！ .gitignore にも.env は記載済みです。**
   - [環境構成からの移行 | firebase](https://firebase.google.com/docs/functions/config-env#migrating_from_environment_configuration)にも記載されている通り、機密情報を利用する時は.env ではなく、.secret.local を利用するべきです。  
@@ -198,6 +242,8 @@ sequenceDiagram
   - functions/src/main.ts で各 API ごとに利用する機密情報を `.runWith({ secrets: ['HOGE'] })` で指定しています。
   - 機密情報を Secret Manager API に登録するには `npx firebase functions:secrets:set HOGE` コマンドを使います
   - Secret Manager API の値を扱うためには、GCP ユーザーのロールを編集する必要があります。
+- テスト時（`npm run nest:test / npm run nest:test:e2e`）: `functions/.env.test` からテスト用 Firebase プロジェクトの情報を読み込み、テストを実行する
+  - 詳細は[テスト](#テスト)を参照。
 
 ### Versioning
 
@@ -293,21 +339,62 @@ Interceptors を利用すると、リクエストとレスポンスに任意の�
 
 ### テスト
 
-NestJS には、デフォルトで`Jest`と`Supertest`が組み込まれており、すぐに単体・結合テストを実行できます。
+NestJS には、デフォルトで `Jest` と `Supertest` が組み込まれており、すぐに単体・結合テストを実行できます。
 
-慣例的に、単体テストファイルはテスト対象の service や controller と同じディレクトリに格納します。  
-結合テストファイルは、`functions/test` に格納します。
+慣例的に、単体テストファイルは `xxx.spec.ts` と命名して、テスト対象の service や controller と同じディレクトリに格納します。  
+結合テストファイルは `xxx.e2e-spec.ts` と命名して `functions/test` に格納します。
+
+#### サンプルテストコード
+
+本テンプレートでは、以下のサンプルテストコードを用意しています。
+
+- 単体テスト
+  - service
+    - `functions/src/version/version.service.spec.ts`
+      - service テストコードの基本形
+    - `functions/src/todos/todos.service.spec.ts`
+      - guard を適用した service に対するテストコードを実装
+  - controller
+    - `functions/src/version/version.controller.spec.ts`
+      - controller テストコードの基本形
+    - `functions/src/todos/todos.controller.spec.ts`
+      - guard を適用した controller に対するテストコードを実装
+  - gurad
+    - `functions/src/auth/auth.guard.spec.ts`
+      - gurad テストコードの基本形
+- 結合テスト
+  - `functions/test/app.e2e-spec.ts`
+    - 結合テストコードの基本形
+  - `functions/test/auth/auth.e2e-spec.ts`
+    - auth guard による認証のサンプルテストコードを実装
+
+#### テストプロジェクトとのつなぎ込みについて
+
+[Cloud Functions 用の Firebase Test SDK の初期化](https://firebase.google.com/docs/functions/unit-testing?hl=ja#initializing)に記載されている通り、Firebase Cloud Functions のテストは、オンラインモードが推奨されています。
+
+本テンプレートも公式が推奨している通り、オンラインモードでのテストを想定しています。  
+`functions/.env.test` にテスト用 Firebase プロジェクトの情報を記載し、各テスト実行時に読み込む事でオンラインモードのテストを実行する想定です。  
+単体テストでは `functions/src/config/unit-test.config.ts` にて、`.env.test` を読み込む。  
+結合テストでは `ConfigModule.forRoot()` の `envFilePath` で改めて `.env.test` を指定する事により、テスト用 Firebase プロジェクトとつなぎ込めるようにしています。
+
+もし、他のテスト環境を利用したい場合（ステージング環境など…）は、新規でテスト用 Firebase プロジェクトを作成して、`.env.test` を上書き（もしくは `.env.test.staging` などを新規作成）して、つなぎ込みを行ってください。
 
 #### テスト時における環境変数のセット方法
 
+##### 単体テスト
+
 単体テストにおいて指定した環境変数ファイルを読み込めるように、以下のようなコードを実装しています。
 
-1. `functions/src/config/unit-test.config.ts` に環境変数上書き処理を記載
-2. package.json の jest の項目に `"setupFiles": ["<rootDir>/config/unit-test.config.ts"]` を追加
-   - jest では `setupFiles` に記載したファイルがテスト前に読み込まれる
+1. `functions/src/config/unit-test.config.ts` に環境変数上書き処理を記載する
+2. package.json の jest の項目に `"setupFiles": ["<rootDir>/config/unit-test.config.ts"]` を追加する
+   - jest では `setupFiles` に記載したファイルがテスト前に読み込まれます
 3. 単体テストファイルの `beforeAll` にて `ConfigService` を設定する
    - `useValue` で、環境変数を返す関数をオーバーライドする
    - サンプルファイル: `functions/src/auth/auth.guard.spec.ts`
+
+##### 結合テスト
+
+結合テストでは、`Test.createTestingModule()` 実行時に `ConfigModule.forRoot()` を呼び出して、改めて環境変数を指定しています。
 
 ### コードフォーマット
 
